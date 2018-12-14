@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#For Bash for windows - no translate patsh linux -> windows
+declare -x MSYS_NO_PATHCONV=1
+
+#PHP Composer run through Docker container
+PWD=$(pwd)
+#echo "Current working directory: '${PWD}'"
+docker run --rm -v "${PWD}":/app composer/composer $@
