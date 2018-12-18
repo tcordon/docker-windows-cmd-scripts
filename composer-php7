@@ -3,6 +3,7 @@
 #For Bash for windows - no translate patsh linux -> windows
 declare -x MSYS_NO_PATHCONV=1
 
+#PHP Composer run through Docker container
 PWD=$(pwd)
 #echo "Current working directory: '${PWD}'"
-docker run --rm -v "${PWD}":/usr/src/myapp -w /usr/src/myapp helder/php-5.3 php $@
+docker run --rm -v "${PWD}":/app composer/composer --ignore-platform-reqs $@
