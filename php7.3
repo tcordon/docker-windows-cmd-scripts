@@ -5,4 +5,4 @@ declare -x MSYS_NO_PATHCONV=1
 
 PWD=$(pwd)
 #echo "Current working directory: '${PWD}'"
-docker run --rm -v "${PWD}":/usr/src/myapp -w /usr/src/myapp php:7.3 php $@
+docker run --rm -v "${PWD}":/usr/src/myapp -w /usr/src/myapp tcordon/php7.3-gd-xdebug php $@
