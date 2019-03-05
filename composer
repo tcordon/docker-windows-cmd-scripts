@@ -7,8 +7,17 @@ declare -x MSYS_NO_PATHCONV=1
 PWD=$(pwd)
 #echo "Current working directory: '${PWD}'"
 
-if [ "x$@" != "x" ]; then
-	if [ "$@" == "dump-autoload" ] ;then
+containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
+
+if test "$#" -gt 0; then
+	containsElement "dump-autoload" "$@"
+	if [ $? -eq 0 ] ;then
 		docker run --rm -v "${PWD}":/app composer/composer533 $@
 	else
 		docker run --rm -v "${PWD}":/app composer/composer533 --ignore-platform-reqs $@

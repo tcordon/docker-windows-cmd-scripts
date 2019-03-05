@@ -45,6 +45,8 @@ if(!function_exists('hash_equals')) { \
  && composer --ansi --version --no-interaction \
  && rm -rf /tmp/* /tmp/.htaccess
 
+RUN docker-php-ext-install sockets
+
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 WORKDIR /app
