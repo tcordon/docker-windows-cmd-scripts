@@ -25,6 +25,10 @@ ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 RUN wget "http://updates.jenkins-ci.org/latest/jenkins.war" -O /usr/share/jenkins/jenkins.war
 RUN chmod 664 /usr/share/jenkins/jenkins.war
 
+
+#Enable acces for jnlp Agents
+ADD ref /usr/share/jenkins/
+
 #########################################
 ### Jenkins Configuration And Plugins ###
 #########################################
