@@ -16,12 +16,31 @@ containsElement () {
 
 
 if test "$#" -gt 0; then
-	containsElement "dump-autoload" "$@"
+#	containsElement "dump-autoload" "$@"
+#	if [ $? -eq 0 ] ;then
+#		docker run --rm -v "${PWD}":/app composer/composer533 $@
+#	else
+#		docker run --rm -v "${PWD}":/app composer/composer533 --ignore-platform-reqs $@
+#	fi
+
+	IGNORE_PLATFORM_REQS=0
+
+	containsElement "require" "$@"
 	if [ $? -eq 0 ] ;then
-		docker run --rm -v "${PWD}":/app composer/composer533 $@
-	else
-		docker run --rm -v "${PWD}":/app composer/composer533 --ignore-platform-reqs $@
+		IGNORE_PLATFORM_REQS=1
 	fi
+
+	containsElement "remove" "$@"
+        if [ $? -eq 0 ] ;then
+                IGNORE_PLATFORM_REQS=1
+        fi
+
+	if [ ${IGNORE_PLATFORM_REQS} == 1 ]; then
+		 docker run --rm -v "${PWD}":/app composer/composer533 --ignore-platform-reqs $@
+	else
+		docker run --rm -v "${PWD}":/app composer/composer533 $@
+	fi
+
 else
 	docker run --rm -v "${PWD}":/app composer/composer533 
 fi
