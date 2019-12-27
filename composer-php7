@@ -6,4 +6,5 @@ declare -x MSYS_NO_PATHCONV=1
 #PHP Composer run through Docker container
 PWD=$(pwd)
 #echo "Current working directory: '${PWD}'"
-docker run --rm -v "${PWD}":/app composer/composer --ignore-platform-reqs $@
+docker run --rm -v "${PWD}":/app composer/composer $@
+#--ignore-platform-reqs

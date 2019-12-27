@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#For Bash for windows - no translate paths linux -> windows
+declare -x MSYS_NO_PATHCONV=1
+
+#PHP Composer run through Docker container
+PWD=$(pwd)
+#echo "Current working directory: '${PWD}'"
+
+containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
+
+if test "$#" -gt 0; then
+	IGNORE_PLATFORM_REQS=0
+
+	containsElement "require" "$@"
+	if [ $? -eq 0 ] ;then
+		IGNORE_PLATFORM_REQS=1
+	fi
+
+	containsElement "remove" "$@"
+        if [ $? -eq 0 ] ;then
+                IGNORE_PLATFORM_REQS=1
+        fi
+
+	if [ ${IGNORE_PLATFORM_REQS} == 1 ]; then
+		 docker run --rm -v "${PWD}":/app tcordon/composer-5.6:latest --ignore-platform-reqs $@
+	else
+		docker run --rm -v "${PWD}":/app tcordon/composer-5.6:latest $@
+	fi
+
+else
+	docker run --rm -v "${PWD}":/app tcordon/composer-5.6:latest
+fi

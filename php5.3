@@ -5,4 +5,5 @@ declare -x MSYS_NO_PATHCONV=1
 
 PWD=$(pwd)
 #echo "Current working directory: '${PWD}'"
-docker run --rm -v "${PWD}":/usr/src/myapp -w /usr/src/myapp helder/php-5.3 php $@
+#docker run --rm --network host -v "${PWD}":/usr/src/myapp -w /usr/src/myapp helder/php-5.3 php $@
+docker run --rm --network host -v "${PWD}":/usr/src/myapp -w /usr/src/myapp tcordon/php5.3.3-gettext php $@

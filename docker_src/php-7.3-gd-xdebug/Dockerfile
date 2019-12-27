@@ -3,6 +3,9 @@ FROM php:7.3
 #Installa Xdebu
 RUN pecl install xdebug-beta
 
+#Install int (internationalizacion)
+RUN apt-get update && apt-get install -y g++ libicu-dev && docker-php-ext-install -j$(nproc) intl
+
 #Enable PHP Extension
 RUN docker-php-ext-enable xdebug
 

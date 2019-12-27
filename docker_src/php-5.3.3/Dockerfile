@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       curl \
       librecode0 \
       libmysqlclient-dev \
+      libxml2 \
     && apt-get clean \
     && rm -r /var/lib/apt/lists/*
 
@@ -42,21 +43,10 @@ RUN OPENSSL_VERSION="1.0.1e" \
       && curl -sL "https://www.openssl.org/source/old/1.0.1/openssl-$OPENSSL_VERSION.tar.gz" -o openssl.tar.gz \
       && tar -xzvf openssl.tar.gz -C /tmp/openssl --strip-components=1 \
       && cd /tmp/openssl \
-      && ./config --prefix=/usr/local/ssl_compiled/openssl --openssldir=/usr/local/ssl_compiled/openssl shared zlib && make && make install_sw
-
-#RUN OPENSSL_VERSION="0.9.8zg" \
-#      && cd /tmp \
-#      && mkdir openssl \
-#      && curl -sL "https://www.openssl.org/source/old/0.9.x/openssl-$OPENSSL_VERSION.tar.gz" -o openssl.tar.gz \
-#      && curl -sL "https://www.openssl.org/source/old/0.9.x/openssl-$OPENSSL_VERSION.tar.gz.asc" -o openssl.tar.gz.asc \
-#      && gpg --verify openssl.tar.gz.asc \
-#      && tar -xzf openssl.tar.gz -C openssl --strip-components=1 \
-#      && cd /tmp/openssl \
-#      && ./config && make && make install
-
-
-#RUN ls -alF /usr/local/ssl_compiled/openssl && sleep 90
-#RUN find /usr/local/ssl_compiled/openssl -regex .*evp.* && sleep 90
+#      && ./config --prefix=/usr/local/openssl --openssldir=/lib/x86_64-linux-gnu shared zlib && make && make install_sw \
+      && ./config --prefix=/usr/local/openssl --openssldir=/usr/local/openssl shared zlib && make && make install_sw \
+#      && ./config shared zlib && make && make install_sw \
+      && echo "/usr/local/openssl/lib" >> /etc/ld.so.conf && ldconfig -v
 
 #Install LibXML2
 RUN cd /tmp \
@@ -82,8 +72,13 @@ RUN buildDeps=" \
                 librecode-dev \
                 libsqlite3-dev \
                 libpng-dev \
+                libpng12-dev \
                 xz-utils \
 		pkg-config \
+		libssl-dev \
+		libpng12-0 \
+		libpng12-dev \
+		libjpeg-dev \ 
       " \
       && set -x \
       && apt-get update && apt-get install -y $buildDeps --no-install-recommends && rm -rf /var/lib/apt/lists/* \
@@ -110,19 +105,52 @@ RUN buildDeps=" \
             --with-pdo-mysql \
             --with-curl \
             --enable-soap \
-            --with-png \
             --with-gd \
+	    --with-png=/usr/lib/x86_64-linux-gnu/ \
+	    --with-jpeg-dir=/usr/lib/x86_64-linux-gnu/ \
             --with-readline \
             --with-recode \
             --with-zlib \
-	    --with-openssl \
-            --with-openssl-dir=/tmp/openssl \
-      && make -j"$(nproc)" \
+	    --with-openssl=/usr/ \
+            --with-openssl-dir=/usr/local/openssl/ \
+	    --with-curl=/usr/local \
+	    --with-zip \
+     && make -j"$(nproc)" \
       && CXX=g++ make install \
       && { find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; } \
-      && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false $buildDeps \
+#      && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false -o APT::AutoRemove::SuggestsImportant=false $buildDeps \
       && make clean
 
+#Install PEAR
+RUN apt-get update && apt-get install -y php-pear \
+	&& apt-get clean \
+	&& rm -r /var/lib/apt/lists/*
+
+#Installa Xdebu
+RUN pecl install xdebug-2.2.7
+
+#Enable PHP extension
+RUN echo >> /etc/php5/cli/php.ini && echo "zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20090626/xdebug.so" >> /etc/php5/cli/php.ini && ln -s /etc/php5/cli/php.ini /usr/local/etc/php/conf.d/
+
+RUN echo "default_charset = \"utf-8\"" > $PHP_INI_DIR/php.ini \
+    && echo "date.timezone = Europe/Madrid" >> $PHP_INI_DIR/php.ini
+
+#Confgiure PHP - PHP.ini
+RUN sed -i 's/short_open_tag = Off/short_open_tag = On/g' /etc/php5/cli/php.ini
+RUN echo "register_globals = on" >> /etc/php5/cli/php.ini
+RUN echo 'upload_tmp_dir = "/tmp"' >> /etc/php5/cli/php.ini
+RUN echo 'upload_max_filesize = 50M' >> /etc/php5/cli/php.ini
+
+#Memcached
+RUN apt-get update && apt-get install -y libmemcached-dev --no-install-recommends && rm -rf /var/lib/apt/lists/* && pecl install memcached-2.1.0 && echo "extension=memcached.so" >> $PHP_INI_DIR/php.ini
+#Enable Openssl
+RUN echo "extension=openssl.so" >> $PHP_INI_DIR/php.ini
+
+#Session Configuration
+RUN echo "session.save_handler = files" >> /etc/php5/cli/php.ini
 WORKDIR /var/www/html
+
+#Install GIT
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 
 CMD ["php"]

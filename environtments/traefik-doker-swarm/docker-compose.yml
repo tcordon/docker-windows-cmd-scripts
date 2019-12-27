@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:v2.0 # The official v2.0 Traefik docker image
+    command: --api.insecure=true
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik.toml:/etc/traefik/traefik.toml
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+zipkin:
+    image: openzipkin/zipkin
+    ports:
+     - "9411:9411"
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+  
